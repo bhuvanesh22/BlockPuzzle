@@ -1,14 +1,10 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, EventTarget } from 'cc';
 const { ccclass, property } = _decorator;
 
-@ccclass('EventManager')
-export class EventManager extends Component {
-    start() {
+export const GlobalEvent = new EventTarget();
 
-    }
-
-    update(deltaTime: number) {
-        
-    }
-}
-
+export const GameEvents = {
+    BLOCK_DROPPED: 'BLOCK_DROPPED',
+    LEVEL_COMPLETED: 'LEVEL_COMPLETED',
+    GAME_RESTART: 'GAME_RESTART',
+};
