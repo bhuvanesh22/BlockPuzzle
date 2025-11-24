@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Vec3, Vec2, Prefab, instantiate, UITransform } from 'cc';
+import { _decorator, Component, Node, Vec3, Vec2, Prefab, instantiate, UITransform, color } from 'cc';
 import { Slot } from './Slot';
 import { Constants } from '../Utils/Constants';
 import { GlobalEvent, GameEvents } from '../Core/EventManager';
@@ -27,6 +27,10 @@ export class Board extends Component {
 
     start() {
         this.generateGrid(this.rows, this.columns);
+    }
+
+    getCurrentRowAndColumnCount() : Vec2 {
+        return new Vec2(this.rows, this.columns);
     }
 
     public generateGrid(_rows : number, _columns : number ) {
@@ -90,7 +94,19 @@ export class Board extends Component {
             const y = anchorSlot.gridY + offset.y;
             this.grid[x][y].setOccupied(true);
         }
-        this,this.checkWinCondition();
+        this.checkWinCondition();
+    }
+
+    public removeBlock(anchorSlot : Slot, shapeOffsets : Vec2[] ) {
+        for(const offset of shapeOffsets) {
+            const x = anchorSlot.gridX + offset.x;
+            const y = anchorSlot.gridY + offset.y;
+            
+            // Check bounds before accessing (safety check)
+            if(x >= 0 && x < this.columns && y >= 0 && y < this.rows) {
+                this.grid[x][y].setOccupied(false);
+            }
+        }
     }
 
     public getClosestSlot(worldPos : Vec3): Slot | null {
