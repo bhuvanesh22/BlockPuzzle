@@ -35,6 +35,10 @@ export class Block extends Component {
         }
     }
 
+    public updateStartPosition() {
+        this._startPos = this.node.position.clone();
+    }
+
     calculateShape() {
         this.shapeOffsets = [];
         this.node.children.forEach(child => {
