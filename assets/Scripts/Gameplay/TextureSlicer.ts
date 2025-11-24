@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Texture2D, Sprite, SpriteFrame, Rect, UITransform, Vec3, Vec2, math, Size, Prefab } from 'cc';
+import { _decorator, Component, Node, Texture2D, Sprite, SpriteFrame, Rect, UITransform, Vec3, Vec2, math, Size, Prefab, instantiate } from 'cc';
 import { Block } from './Block';
 import { Board } from './Board';
 import { BlockContainer } from './BlockContainer';
@@ -24,11 +24,6 @@ export class TextureSlicer extends Component {
     @property(Node)
     public shelfContent: Node = null!; 
 
-    @property
-    public containerPadding: number = 30;
-
-    @property
-    public shelfPadding: number = 20; // Space between blocks
     currentRowCount : number = 0;
     currentColumnCount : number = 0;
 
@@ -96,82 +91,35 @@ export class TextureSlicer extends Component {
             });
         });
 
-        // --- 2. NEW SHELF ALIGNMENT LOGIC ---
-        this.arrangeBlocksOnShelf();
+        this.moveToShelfWithContainers();
     }
 
-    arrangeBlocksOnShelf() {
-        if (!this.shelfContent) return;
-
-        let currentX = this.shelfPadding;
-        console.log(currentX);
-        // 1. Calculate Scaling Factor (how much blocks shrunk)
-        const scale = this.board.slotSize / Constants.EDITOR_SLOT_SIZE;
-        // The actual visual size of one square in the shelf
-        const visualSlotSize = Constants.EDITOR_SLOT_SIZE * scale;
+    moveToShelfWithContainers() {
+        if (!this.shelfContent || !this.blockContainerPrefab) return;
 
         this.puzzleBlocks.forEach(block => {
-            // A. Move block to the Shelf Container so coordinates are local to the ScrollView
-            block.node.parent = this.shelfContent;
-            
-            const bounds = this.getBlockVisualBounds(block);
+            const containerNode = instantiate(this.blockContainerPrefab);
+            containerNode.parent = this.shelfContent;
+            const containerComp = containerNode.getComponent(BlockContainer);
 
-            // Convert editor coords to visual scale coords
-            const leftEdgeOffset = bounds.minX * scale; 
-            const rightEdgeOffset = bounds.maxX * scale;
-            const topEdgeOffset = bounds.maxY * scale;
-            const bottomEdgeOffset = bounds.minY * scale;
-            
-            // Full Width = distance between edges + size of one slot (since position is center of slot)
-            const blockWidth = (rightEdgeOffset - leftEdgeOffset) + visualSlotSize;
-            const blockHeight = (topEdgeOffset - bottomEdgeOffset) + visualSlotSize;
-            // C. Center logic
-            // We want the LEFT edge of the block to be at 'currentX'
-            // The block's position (0,0) might be in the middle of the shape.
-            // We need to shift it so its visual left edge aligns with currentX.
-            
-            // Distance from Anchor (0,0) to Left Edge is 'leftEdgeOffset' (usually negative)
-            // Target X = currentX + (distance to center from left)
-            // Distance to center = -leftEdgeOffset + (visualSlotSize / 2) is approx center of first block
-            
-            // Simpler approach: Place anchor such that left-most child touches currentX
-            const anchorX = currentX - leftEdgeOffset + (visualSlotSize / 2);            
-            const anchorY = -(bottomEdgeOffset + blockHeight/2); // Roughly center Y
-
-            block.node.setPosition(anchorX, anchorY, 0);
-
-            // D. Tell Block this is its new home
-            block.updateStartPosition();
-
-            // E. Advance X pointer
-            currentX += blockWidth + this.shelfPadding;
+            this.randomizeBlock(block);
+            containerComp.setup(block);
         });
-
-        // 3. Resize ScrollView Content to fit everything
-        const contentTrans = this.shelfContent.getComponent(UITransform);
-        if (contentTrans) {
-            // Ensure height is enough for blocks (e.g. 300)
-            contentTrans.setContentSize(new Size(currentX, 300));
-        }
     }
 
-    getBlockVisualBounds(block: Block) {
-        let minX = Number.MAX_VALUE;
-        let maxX = -Number.MAX_VALUE;
-        let minY = Number.MAX_VALUE;
-        let maxY = -Number.MAX_VALUE;
+    randomizeBlock(block: Block) {
+        // Random Rotation (0, -90, -180, -270)
+        const rotations = [0, 1, 2, 3]; 
+        const randomRot = rotations[Math.floor(Math.random() * rotations.length)];
+        block.node.angle = -(randomRot * 90);
 
-        if (block.node.children.length === 0) {
-            return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+        // Random Flip
+        const randomFlip = Math.random() > 0.5;
+        if (randomFlip) {
+            block.node.scale = new Vec3(-block.node.scale.x, block.node.scale.y, 1);
         }
 
-        block.node.children.forEach(child => {
-            if (child.position.x < minX) minX = child.position.x;
-            if (child.position.x > maxX) maxX = child.position.x;
-            if (child.position.y < minY) minY = child.position.y;
-            if (child.position.y > maxY) maxY = child.position.y;
-        });
-
-        return { minX, maxX, minY, maxY };
+        // IMPORTANT: Recalculate shape offsets after randomizing!
+        block.calculateShape();
     }
 }

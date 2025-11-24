@@ -1666,10 +1666,13 @@
       null,
       null
     ],
+    "blockContainerPrefab": {
+      "__uuid__": "3132180b-8fa6-4de8-8dcd-b7715f2a0ee4",
+      "__expectedType__": "cc.Prefab"
+    },
     "shelfContent": {
       "__id__": 107
     },
-    "shelfPadding": 20,
     "_id": "00c8WHGPdPZ40xLaySt6mi"
   },
   {
@@ -1694,7 +1697,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -215,
-      "y": 0,
+      "y": 15,
       "z": 0
     },
     "_lrot": {
@@ -2214,8 +2217,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 430,
-      "height": 150
+      "width": 480,
+      "height": 200
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -2320,11 +2323,11 @@
       "height": 40
     },
     "_startAxis": 0,
-    "_paddingLeft": 20,
+    "_paddingLeft": 30,
     "_paddingRight": 0,
     "_paddingTop": 0,
     "_paddingBottom": 0,
-    "_spacingX": 20,
+    "_spacingX": 30,
     "_spacingY": 0,
     "_verticalDirection": 1,
     "_horizontalDirection": 0,

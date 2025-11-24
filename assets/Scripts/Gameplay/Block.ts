@@ -10,13 +10,17 @@ export class Block extends Component {
     @property(Board)
     board: Board = null!;
     
+    public returnToShelfCallback: () => void = null!;
+    public onPlaceOnBoardCallback: () => void = null!;
+
     public shapeOffsets : Vec2[] = [new Vec2(0, 0)];
     public targetGridPosition: Vec2 = new Vec2(-99, -99);
 
     _startParent: Node = null!;
     _startPos : Vec3 = new Vec3();
     _dragging : boolean = false;
-    _baseScale : number = 1;
+    _boardScale : number = 1;
+    _containerScale : number = 1;
     _lastAnchorSlot: Slot | null = null; 
 
     protected onLoad(): void {
@@ -34,15 +38,19 @@ export class Block extends Component {
         this._startPos = this.node.worldPosition.clone();
 
         if(this.board) {
-            this._baseScale = this.board.slotSize / Constants.EDITOR_SLOT_SIZE;
-            const currentDirX = Math.sign(this.node.scale.x);
-            this.node.setScale(new Vec3(this._baseScale * currentDirX, this._baseScale, 1));
+            this._boardScale = this.board.slotSize / Constants.EDITOR_SLOT_SIZE;
         }
     }
 
     public updateStartPosition() {
         this._startParent = this.node.parent;
         this._startPos = this.node.position.clone();
+    }
+
+    public setContainerScale(scale: number) {
+        this._containerScale = scale;
+        const dirX = Math.sign(this.node.scale.x);
+        this.node.setScale(new Vec3(this._containerScale * dirX, this._containerScale, 1));
     }
 
      public rotate() {
@@ -103,7 +111,7 @@ export class Block extends Component {
         this.node.worldPosition = worldPos;
 
         const dirX = Math.sign(this.node.scale.x);
-        const dragScale = this._baseScale * Constants.BLOCK_SCALE_DRAG;
+        const dragScale = this._boardScale * Constants.BLOCK_SCALE_DRAG;
         this.node.setScale(new Vec3(dragScale * dirX, dragScale, 1));
     }
 
@@ -116,8 +124,6 @@ export class Block extends Component {
 
     onTouchEnd(event : EventTouch){
         this._dragging = false;
-        const dirX = Math.sign(this.node.scale.x);
-        this.node.setScale(new Vec3(this._baseScale * dirX, this._baseScale, 1));
         this.trySnap();
     }
 
@@ -125,14 +131,21 @@ export class Block extends Component {
         const snapSlot = this.board.checkSnap(this.node.worldPosition, this.shapeOffsets);
 
         if(snapSlot) {
-             this.board.placeBlock(snapSlot, this.shapeOffsets);
-             this._lastAnchorSlot = snapSlot;
-             const targetPos = snapSlot.node.worldPosition;
-             this.node.setWorldPosition(targetPos);
-             this.node.parent = this.board.slotContainer;
+            this.board.placeBlock(snapSlot, this.shapeOffsets);
+            this._lastAnchorSlot = snapSlot;
+            const targetPos = snapSlot.node.worldPosition;
+            this.node.setWorldPosition(targetPos);
+            this.node.parent = this.board.slotContainer;
 
-             const isCorrectPos = (this.targetGridPosition.x === snapSlot.gridX && 
-                                   this.targetGridPosition.y === snapSlot.gridY);
+            const dirX = Math.sign(this.node.scale.x);
+            this.node.setScale(new Vec3(this._boardScale * dirX, this._boardScale, 1));
+
+            if (this.onPlaceOnBoardCallback) {
+                this.onPlaceOnBoardCallback();
+            }
+
+            const isCorrectPos = (this.targetGridPosition.x === snapSlot.gridX && 
+                                this.targetGridPosition.y === snapSlot.gridY);
 
             const normalizeAngle = Math.abs(this.node.angle % 360);
             const isUpright = (normalizeAngle < 1 || normalizeAngle > 359);
@@ -144,7 +157,17 @@ export class Block extends Component {
                  this.lockBlock();
              }
         }
-        else this.returnToStart();
+        else {
+            if (this.returnToShelfCallback) {
+                // Clear the board memory since we are leaving the board
+                this._lastAnchorSlot = null;
+                // Execute callback to let Container handle the visuals
+                this.returnToShelfCallback();
+            } else {
+                // Fallback (shouldn't happen if setup correctly)
+                this.returnToStart();
+            }
+        }
     }
 
     lockBlock() {
@@ -161,6 +184,9 @@ export class Block extends Component {
     returnToStart() {
         this.node.parent = this._startParent;
         this.node.setPosition(0, 0, 0);
+
+        const dirX = Math.sign(this.node.scale.x);
+        this.node.setScale(new Vec3(this._containerScale * dirX, this._containerScale, 1));
 
         if (this._lastAnchorSlot) {
             this.board.placeBlock(this._lastAnchorSlot, this.shapeOffsets);
