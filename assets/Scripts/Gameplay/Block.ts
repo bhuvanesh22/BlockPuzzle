@@ -42,6 +42,13 @@ export class Block extends Component {
         }
     }
 
+    public setBoard(board: Board) {
+        this.board = board;
+        if (this.board) {
+            this._boardScale = this.board.slotSize / Constants.EDITOR_SLOT_SIZE;
+        }
+    }
+
     public updateStartPosition() {
         this._startParent = this.node.parent;
         this._startPos = this.node.position.clone();
@@ -128,6 +135,12 @@ export class Block extends Component {
     }
 
     trySnap() {
+        if (!this.board) {
+            console.error("Block Error: No Board assigned to this Block! Check TextureSlicer or Inspector.");
+            this.returnToStart();
+            return;
+        }
+
         const snapSlot = this.board.checkSnap(this.node.worldPosition, this.shapeOffsets);
 
         if(snapSlot) {

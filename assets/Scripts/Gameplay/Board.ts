@@ -92,7 +92,9 @@ export class Board extends Component {
         for(const offset of shapeOffsets) {
             const x = anchorSlot.gridX + offset.x;
             const y = anchorSlot.gridY + offset.y;
-            this.grid[x][y].setOccupied(true);
+            if (x >= 0 && x < this.columns && y >= 0 && y < this.rows) {
+                this.grid[x][y].setOccupied(true);
+            }
         }
         this.checkWinCondition();
     }
