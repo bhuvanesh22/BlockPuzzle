@@ -39,64 +39,58 @@ export class TextureSlicer extends Component {
     }
 
     generatePuzzle() {
-        if (!this.puzzleImage || !this.board) return;
+        if (!this.board || !this.puzzleImage) {
+            console.error("TextureSlicer: Missing Board or Image!");
+            return;
+        }
 
         this.setCurrentRowAndColumnCount();
 
-        // --- 1. SLICING LOGIC (Same as before) ---
-        // const boardTrans = this.board.slotContainer.getComponent(UITransform);
-        // const boardWorldPos = this.board.slotContainer.worldPosition;
-        
-        // const gridPixelWidth = this.board.slotSize * this.currentRowCount; 
-        // const gridPixelHeight = this.board.slotSize * this.currentColumnCount; 
-
-        // const minX = boardWorldPos.x - (gridPixelWidth / 2);
-        // const minY = boardWorldPos.y - (gridPixelHeight / 2); 
-
         const texW = this.puzzleImage.width;
         const texH = this.puzzleImage.height;
-
         const slotTexWidth = texW / this.currentColumnCount; 
         const slotTexHeight = texH / this.currentRowCount;
+
+        // Calculate the exact scale needed for blocks to match board slots
+        const correctScale = this.board.slotSize / Constants.EDITOR_SLOT_SIZE;
 
         this.puzzleBlocks.forEach(block => {
             block.setBoard(this.board);
 
-            const anchorSlot = this.board.getClosestSlot(block.node.worldPosition);
-            if (anchorSlot) {
-                block.targetGridPosition = new Vec2(anchorSlot.gridX, anchorSlot.gridY);
+            // FIX 1: FORCE EXACT SCALE
+            // This prevents "drift". If a block is slightly too big/small, 
+            // its outer segments will fall into adjacent slots, causing the wrong texture.
+            const originalScale = block.node.scale.clone(); // Save to restore later if needed
+            const dirX = Math.sign(originalScale.x);
+            const dirY = Math.sign(originalScale.y);
+            block.node.setScale(correctScale * dirX, correctScale * dirY, 1);
+            block.node.updateWorldTransform(); // Ensure physics positions are updated immediately
 
-                const rad = math.toRadian(block.node.angle);
-                const cos = Math.cos(rad);
-                const sin = Math.sin(rad);
-                const scaleX = Math.sign(block.node.scale.x);
-                const scaleY = Math.sign(block.node.scale.y);
+            // 1. Capture Solution (Target Position)
+            const centerSlot = this.board.getClosestSlot(block.node.worldPosition);
+            if (centerSlot) {
+                block.targetGridPosition = new Vec2(centerSlot.gridX, centerSlot.gridY);
+            }
 
-                block.node.children.forEach(segment => {
-                    const sprite = segment.getComponent(Sprite);
-                    if (!sprite) return;
+            // 2. Texture Logic - SEGMENT BASED
+            block.node.children.forEach(segment => {
+                const sprite = segment.getComponent(Sprite);
+                if (!sprite) return;
 
-                    // Get Grid Offset from Block Center (e.g. 0,0 or 1,0)
-                    const lx = Math.round(segment.position.x / Constants.EDITOR_SLOT_SIZE);
-                    const ly = Math.round(segment.position.y / Constants.EDITOR_SLOT_SIZE);
+                // FIX 2: USE WORLD POSITION
+                // Ask the board exactly which slot is under this specific segment.
+                // Since we forced the scale above, this is now mathematically guaranteed to be correct.
+                const segmentSlot = this.board.getClosestSlot(segment.worldPosition);
 
-                    // Apply Rotation/Scale to find where this segment lands on the grid
-                    // (Matches Block.ts calculateShape logic)
-                    const sx = lx * scaleX;
-                    const sy = ly * scaleY;
-                    const rx = sx * cos - sy * sin;
-                    const ry = sx * sin + sy * cos;
-                    
-                    const offsetX = Math.round(rx);
-                    const offsetY = Math.round(ry);
+                if (segmentSlot) {
+                    const gridX = segmentSlot.gridX;
+                    const gridY = segmentSlot.gridY;
 
-                    // Final Grid Coordinate
-                    const gridX = anchorSlot.gridX + offsetX;
-                    const gridY = anchorSlot.gridY + offsetY;
-
-                    // 4. Slice Texture
+                    // Bounds Check
                     if (gridX >= 0 && gridX < this.currentColumnCount && gridY >= 0 && gridY < this.currentRowCount) {
                         const texX = gridX * slotTexWidth;
+                        
+                        // Y-Inversion (Top of Board = Top of Image)
                         const invertedGridY = (this.currentRowCount - 1) - gridY;
                         const texY = invertedGridY * slotTexHeight;
 
@@ -105,42 +99,16 @@ export class TextureSlicer extends Component {
                         newFrame.rect = new Rect(texX, texY, slotTexWidth, slotTexHeight);
                         sprite.spriteFrame = newFrame;
                         sprite.color = new math.Color(255, 255, 255, 255);
+                    } else {
+                        // This happens if the block is placed outside the Board's Rows/Cols
+                        console.warn(`Segment at ${gridX},${gridY} is outside board bounds! Check Board Rows/Cols.`);
                     }
-                });
-
-            }
-
-            // block.node.children.forEach(segment => {
-            //     const sprite = segment.getComponent(Sprite);
-            //     if (!sprite) return;
-
-            //     const segmentSlot = this.board.getClosestSlot(segment.worldPosition);
-
-            //     const gridX = segmentSlot.gridX;
-            //     const gridY = segmentSlot.gridY;
-
-            //     // const segWorldPos = segment.worldPosition;
-            //     // const diffX = segWorldPos.x - minX;
-            //     // const diffY = segWorldPos.y - minY;
-
-            //     // const ratioX = math.clamp01(diffX / gridPixelWidth);
-            //     // const ratioY = math.clamp01(diffY / gridPixelHeight);
-
-            //     // const gridX = Math.min(Math.floor(ratioX * this.currentColumnCount), this.currentColumnCount - 1);
-            //     // const gridY = Math.min(Math.floor(ratioY * this.currentRowCount), this.currentRowCount - 1);
-
-            //     const texX = gridX * slotTexWidth;
-            //     const invertedGridY = (this.currentRowCount - 1) - gridY;
-            //     const texY = invertedGridY * slotTexHeight;
-
-            //     const newFrame = new SpriteFrame();
-            //     newFrame.texture = this.puzzleImage;
-            //     newFrame.rect = new Rect(texX, texY, slotTexWidth, slotTexHeight);
-                
-            //     sprite.spriteFrame = newFrame;
-            //     sprite.color = new math.Color(255, 255, 255, 255); 
-            // });
+                } else {
+                    console.warn("Segment could not find a slot! Is the block aligned with the grid?");
+                }
+            });
         });
+
 
         this.moveToShelfWithContainers();
     }

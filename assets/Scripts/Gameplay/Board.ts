@@ -23,12 +23,13 @@ export class Board extends Component {
     @property
     private columns : number = 8;
 
-    private grid : Slot[][] = [];
+    public grid : Slot[][] = [];
 
     start() {
-        this.generateGrid(this.rows, this.columns);
+        // IMPORTANT: Leave this empty! 
+        // We let the LevelDesigner call generateGrid() so we don't create a duplicate "Ghost" grid.
     }
-
+    
     getCurrentRowAndColumnCount() : Vec2 {
         return new Vec2(this.rows, this.columns);
     }
@@ -36,10 +37,14 @@ export class Board extends Component {
     public generateGrid(_rows : number, _columns : number ) {
         this.rows = _rows;
         this.columns = _columns;
+        
+        // 1. Clean up any existing slots (Ghost slots)
+        this.slotContainer.destroyAllChildren(); 
         this.grid = [];
 
-        const scaleRatio = this.slotSize / Constants.EDITOR_SLOT_SIZE;
+        console.log(`Board: Generating Grid ${_rows} x ${_columns}`);
 
+        const scaleRatio = this.slotSize / Constants.EDITOR_SLOT_SIZE;
         const startX = -(_columns * this.slotSize) / 2 + (this.slotSize / 2);
         const startY = -(_rows * this.slotSize) / 2 + (this.slotSize / 2);
 
@@ -61,34 +66,49 @@ export class Board extends Component {
         }
     }
 
-    public checkSnap(worldPos : Vec3, shapeOffsets : Vec2[]) : Slot | null {
+    /**
+     * NEW: Resets the logical state of the grid.
+     * Call this after LevelDesigner finishes generating the puzzle,
+     * so the board is "Empty" and ready for the player.
+     */
+    public resetOccupancy() {
+        for(let x = 0; x < this.columns; x++) {
+            for(let y = 0; y < this.rows; y++) {
+                if (this.grid[x] && this.grid[x][y]) {
+                    this.grid[x][y].setOccupied(false);
+                }
+            }
+        }
+    }
 
+    public checkOccupied(x: number, y: number): boolean {
+        if (x < 0 || x >= this.columns || y < 0 || y >= this.rows) return true; 
+        return this.grid[x][y].isOccupied;
+    }
+
+    public getSlot(x: number, y: number): Slot | null {
+        if (x < 0 || x >= this.columns || y < 0 || y >= this.rows) return null;
+        return this.grid[x][y];
+    }
+
+    public checkSnap(worldPos : Vec3, shapeOffsets : Vec2[]) : Slot | null {
         const anchorSlot = this.getClosestSlot(worldPos);
         if (!anchorSlot) return null;
 
         let canFit = true;
-        
         for (const offset of shapeOffsets) {
             const targetX = anchorSlot.gridX + offset.x;
             const targetY = anchorSlot.gridY + offset.y;
-
-            // Check bounds
-            if (targetX < 0 || targetX >= this.columns || targetY < 0 || targetY >= this.rows) {
-                canFit = false;
-                break;
-            }
-
-            // Check if already occupied
-            if (this.grid[targetX][targetY].isOccupied) {
+            
+            if (this.checkOccupied(targetX, targetY)) {
                 canFit = false;
                 break;
             }
         }
-
         return canFit ? anchorSlot : null;
     }
 
-    public placeBlock(anchorSlot : Slot, shapeOffsets : Vec2[] ) {
+    public placeBlock(anchorSlot : Slot, shapeOffsets : Vec2[], checkWin: boolean = true ) {
         for(const offset of shapeOffsets) {
             const x = anchorSlot.gridX + offset.x;
             const y = anchorSlot.gridY + offset.y;
@@ -96,39 +116,34 @@ export class Board extends Component {
                 this.grid[x][y].setOccupied(true);
             }
         }
-        this.checkWinCondition();
+        if (checkWin) {
+            this.checkWinCondition();
+        }
     }
 
     public removeBlock(anchorSlot : Slot, shapeOffsets : Vec2[] ) {
         for(const offset of shapeOffsets) {
             const x = anchorSlot.gridX + offset.x;
             const y = anchorSlot.gridY + offset.y;
-            
-            // Check bounds before accessing (safety check)
-            if(x >= 0 && x < this.columns && y >= 0 && y < this.rows) {
+            if (x >= 0 && x < this.columns && y >= 0 && y < this.rows) {
                 this.grid[x][y].setOccupied(false);
             }
         }
     }
 
     public getClosestSlot(worldPos : Vec3): Slot | null {
-        const localPos = this.slotContainer.getComponent(UITransform).convertToNodeSpaceAR(worldPos);
-        
-        // Convert Local Pos to Grid Index
-        // Logic: (Pos + GridHalfWidth) / SlotSize
-        const gridWidth = this.columns * this.slotSize;
-        const gridHeight = this.rows * this.slotSize;
-        
-        const rawX = (localPos.x + gridWidth / 2) / this.slotSize;
-        const rawY = (localPos.y + gridHeight / 2) / this.slotSize;
+       const localPos = this.slotContainer.getComponent(UITransform).convertToNodeSpaceAR(worldPos);
+       const gridWidth = this.columns * this.slotSize;
+       const gridHeight = this.rows * this.slotSize;
+       const rawX = (localPos.x + gridWidth / 2) / this.slotSize;
+       const rawY = (localPos.y + gridHeight / 2) / this.slotSize;
+       const x = Math.floor(rawX);
+       const y = Math.floor(rawY);
 
-        const x = Math.floor(rawX);
-        const y = Math.floor(rawY);
-
-        if (x >= 0 && x < this.columns && y >= 0 && y < this.rows) {
-            return this.grid[x][y];
-        }
-        return null;
+       if (x >= 0 && x < this.columns && y >= 0 && y < this.rows) {
+           return this.grid[x][y];
+       }
+       return null;
     }
 
     public checkWinCondition() {
@@ -147,5 +162,3 @@ export class Board extends Component {
         }
     }
 }
-
-
