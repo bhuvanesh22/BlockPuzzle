@@ -96,7 +96,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -40,
-      "y": -20,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -232,7 +232,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -20,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -368,7 +368,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 40,
-      "y": -20,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -504,7 +504,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -40,
-      "y": 20,
+      "y": 40,
       "z": 0
     },
     "_lrot": {
@@ -612,8 +612,6 @@
       "__id__": 0
     },
     "fileId": "45IPMVUuNAHp3D0KvhXDZc",
-    "instance": null,
-    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -636,7 +634,7 @@
     "_anchorPoint": {
       "__type__": "cc.Vec2",
       "x": 0.5,
-      "y": 0.5
+      "y": 0.25
     },
     "_id": ""
   },
@@ -657,6 +655,8 @@
       "__id__": 29
     },
     "board": null,
+    "manualTextureCoords": [],
+    "debugSlotInfo": [],
     "_id": ""
   },
   {

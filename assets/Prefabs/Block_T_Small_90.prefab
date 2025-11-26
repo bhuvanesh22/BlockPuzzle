@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "Block_I_Large",
+    "_name": "Block_T_Small_90",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Block_I_Large",
+    "_name": "Block_T_Small_90",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -95,7 +95,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -80,
+      "x": -40,
       "y": 0,
       "z": 0
     },
@@ -167,9 +167,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 237,
-      "g": 255,
-      "b": 100,
+      "r": 0,
+      "g": 133,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {
@@ -231,8 +231,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -40,
-      "y": 0,
+      "x": 0,
+      "y": 40,
       "z": 0
     },
     "_lrot": {
@@ -303,9 +303,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 237,
-      "g": 255,
-      "b": 100,
+      "r": 0,
+      "g": 133,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {
@@ -439,9 +439,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 237,
-      "g": 255,
-      "b": 100,
+      "r": 0,
+      "g": 133,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {
@@ -503,8 +503,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 40,
-      "y": 0,
+      "x": 0,
+      "y": -40,
       "z": 0
     },
     "_lrot": {
@@ -575,9 +575,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 237,
-      "g": 255,
-      "b": 100,
+      "r": 0,
+      "g": 133,
+      "b": 255,
       "a": 255
     },
     "_spriteFrame": {
@@ -630,12 +630,12 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 160,
-      "height": 40
+      "width": 80,
+      "height": 120
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.625,
+      "x": 0.75,
       "y": 0.5
     },
     "_id": ""

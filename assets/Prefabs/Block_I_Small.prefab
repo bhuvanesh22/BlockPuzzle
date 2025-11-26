@@ -89,7 +89,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -20,
+      "x": 0,
       "y": 0,
       "z": 0
     },
@@ -225,7 +225,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 20,
+      "x": 40,
       "y": 0,
       "z": 0
     },
@@ -357,7 +357,7 @@
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0.5,
+      "x": 0.25,
       "y": 0.5
     },
     "_id": ""
@@ -379,6 +379,8 @@
       "__id__": 17
     },
     "board": null,
+    "manualTextureCoords": [],
+    "debugSlotInfo": [],
     "_id": ""
   },
   {

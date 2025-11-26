@@ -1,7 +1,8 @@
-import { _decorator, Component, EventTouch, Node, Vec3, Vec2, director, math } from 'cc';
+import { _decorator, Component, EventTouch, Node, Vec3, Vec2, director, math,CCString } from 'cc';
 import { Board } from './Board';
 import { Slot } from './Slot';
 import { Constants } from '../Utils/Constants';
+import { GlobalEvent, GameEvents } from '../Core/EventManager';
 
 const { ccclass, property } = _decorator;
 
@@ -9,6 +10,16 @@ const { ccclass, property } = _decorator;
 export class Block extends Component {
     @property(Board)
     board: Board = null!;
+
+    @property({
+        type: [Vec2], 
+        tooltip: "Manually define the Grid Coordinates (x,y) for each child segment's texture slice. The order corresponds to the Node hierarchy order of children."
+    })
+    public manualTextureCoords: Vec2[] = [];
+
+
+    @property([CCString])
+    public debugSlotInfo: string[] = []; 
     
     public returnToShelfCallback: () => void = null!;
     public onPlaceOnBoardCallback: () => void = null!;
@@ -136,20 +147,25 @@ export class Block extends Component {
 
     trySnap() {
         if (!this.board) {
-            console.error("Block Error: No Board assigned to this Block! Check TextureSlicer or Inspector.");
+            console.error("Block Error: No Board assigned!");
             this.returnToStart();
             return;
         }
 
+        // Check if valid placement exists
         const snapSlot = this.board.checkSnap(this.node.worldPosition, this.shapeOffsets);
 
         if(snapSlot) {
+            // Place logically
             this.board.placeBlock(snapSlot, this.shapeOffsets);
             this._lastAnchorSlot = snapSlot;
+
+            // Snap visually
             const targetPos = snapSlot.node.worldPosition;
             this.node.setWorldPosition(targetPos);
             this.node.parent = this.board.slotContainer;
 
+            // Reset scale to match board slots
             const dirX = Math.sign(this.node.scale.x);
             this.node.setScale(new Vec3(this._boardScale * dirX, this._boardScale, 1));
 
@@ -157,27 +173,29 @@ export class Block extends Component {
                 this.onPlaceOnBoardCallback();
             }
 
+            // --- WIN CONDITION CHECK ---
+            // 1. Position Check
             const isCorrectPos = (this.targetGridPosition.x === snapSlot.gridX && 
-                                this.targetGridPosition.y === snapSlot.gridY);
+                                  this.targetGridPosition.y === snapSlot.gridY);
 
+            // 2. Rotation Check (must be upright, 0 or 360)
             const normalizeAngle = Math.abs(this.node.angle % 360);
             const isUpright = (normalizeAngle < 1 || normalizeAngle > 359);
 
-            const isNotFlipped = this.node.scale.x > 0;
+            // 3. Flip Check (must not be flipped relative to original)
+            const isNotFlipped = this.node.scale.x > 0; // Assuming original scale X was positive
 
              if (isCorrectPos && isUpright && isNotFlipped) {
-                 console.log("Correct placement and orientation! Locking block.");
+                 console.log("Correct placement! Locking block.");
                  this.lockBlock();
              }
         }
         else {
+            // Invalid placement
             if (this.returnToShelfCallback) {
-                // Clear the board memory since we are leaving the board
                 this._lastAnchorSlot = null;
-                // Execute callback to let Container handle the visuals
                 this.returnToShelfCallback();
             } else {
-                // Fallback (shouldn't happen if setup correctly)
                 this.returnToStart();
             }
         }
@@ -185,11 +203,11 @@ export class Block extends Component {
 
     lockBlock() {
         // Remove event listeners so it cannot be dragged again
+        GlobalEvent.emit(GameEvents.BLOCK_PLACED_CORRECTLY); 
         this.node.off(Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.off(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.node.off(Node.EventType.TOUCH_END, this.onTouchEnd, this);
         this.node.off(Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
-        
         // Optional: Reset scale or visual feedback here
         this._dragging = false;
     }

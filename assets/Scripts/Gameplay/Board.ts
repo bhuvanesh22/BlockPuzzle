@@ -47,6 +47,7 @@ export class Board extends Component {
             this.grid[x] = [];
             for(let y = 0; y < _rows; y++) {
                 const slotNode = instantiate(this.slotPrefab);
+                slotNode.name = "Slot_" + x + y;
                 slotNode.parent = this.slotContainer;
                 slotNode.setScale(scaleRatio, scaleRatio, 1);
                 slotNode.setPosition(
