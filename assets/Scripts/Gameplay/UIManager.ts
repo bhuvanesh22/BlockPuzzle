@@ -1,10 +1,14 @@
 import { _decorator, Component, Label, Node, SpriteFrame, Sprite, Texture2D, Button, Rect, Size } from 'cc';
 import { GlobalEvent, GameEvents } from '../Core/EventManager';
+import { StorageManager } from '../Utils/StorageManager';
 
 const { ccclass, property } = _decorator;
 
 @ccclass('UIManager')
 export class UIManager extends Component {
+
+    @property({ type: Label, tooltip: "Label to display High Score" })
+    public highScoreLabel: Label = null!;
 
     @property({ type: Label, tooltip: "Label to display Score" })
     public scoreLabel: Label = null!;
@@ -44,7 +48,7 @@ export class UIManager extends Component {
     private _correctBlocks: number = 0;
     private _timer: number = 0;
     private _isGameActive: boolean = false;
-    private _levelSpriteFrame : SpriteFrame = new SpriteFrame()
+    private _currentLevelIndex: number = 0;
 
     private _currentLevelTexture: Texture2D | null = null;
 
@@ -125,6 +129,11 @@ export class UIManager extends Component {
 
         this._currentLevelTexture = sampleSprite;
 
+        const highScore = StorageManager.getHighScore(levelIndex);
+        if (this.highScoreLabel) {
+            this.highScoreLabel.string = `Best: ${highScore}`;
+        }
+
         // Update Level Text (Index is 0-based, so +1 for display)
         if (this.levelLabel) {
             this.levelLabel.string = `Level ${levelIndex + 1}`;
@@ -150,6 +159,7 @@ export class UIManager extends Component {
 
     private onLevelComplete() {
         this._isGameActive = false;
+        StorageManager.setHighScore(this._currentLevelIndex, this._score);
         this.showLevelCompleteScreen();
     }
 

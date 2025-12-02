@@ -312,9 +312,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 116,
-      "g": 116,
-      "b": 116,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "Rotate",
@@ -326,23 +326,26 @@
     "_lineHeight": 40,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "0d538f32-e77a-484e-bae8-69c61c15a3db",
+      "__expectedType__": "cc.TTFFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
-    "_outlineWidth": 2,
+    "_outlineWidth": 1,
     "_enableShadow": false,
     "_shadowColor": {
       "__type__": "cc.Color",
@@ -698,9 +701,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 116,
-      "g": 116,
-      "b": 116,
+      "r": 0,
+      "g": 0,
+      "b": 0,
       "a": 255
     },
     "_string": "Flip",
@@ -712,23 +715,26 @@
     "_lineHeight": 40,
     "_overflow": 1,
     "_enableWrapText": false,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "0d538f32-e77a-484e-bae8-69c61c15a3db",
+      "__expectedType__": "cc.TTFFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
-    "_outlineWidth": 2,
+    "_outlineWidth": 1,
     "_enableShadow": false,
     "_shadowColor": {
       "__type__": "cc.Color",

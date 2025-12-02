@@ -3,6 +3,7 @@ import { Constants } from '../Utils/Constants';
 import { GlobalEvent, GameEvents } from './EventManager';
 import { TextureSlicer } from '../Gameplay/TextureSlicer';
 import { LevelData } from '../Gameplay/LevelData';
+import { StorageManager } from '../Utils/StorageManager'; 
 
 const { ccclass, property } = _decorator;
 
